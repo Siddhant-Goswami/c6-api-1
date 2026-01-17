@@ -1,4 +1,4 @@
-# API Foundations Tutorial - Progressive Implementation
+# API Foundations Tutorial (Code)
 
 This tutorial builds a complete AI chat system in 4 progressive steps:
 
@@ -64,7 +64,7 @@ python step2_gradio_with_groq.py
 
 **What you'll see:**
 - Chat interface with real AI responses
-- Using Groq's llama-3.3-70b-versatile model
+- Using Groq's GPT OSS model
 - Conversation history is maintained
 
 **Learning:**
@@ -286,7 +286,7 @@ class ChatResponse(BaseModel):
 ```python
 chat_completion = client.chat.completions.create(
     messages=messages,
-    model="llama-3.3-70b-versatile",
+    model="gpt-oss",
 )
 response = chat_completion.choices[0].message.content
 ```
