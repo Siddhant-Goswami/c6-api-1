@@ -1,49 +1,57 @@
+# ============================================
+# STEP 2: Connect Your Chatbot to AI (GroqCloud)
+# ============================================
+#
+# WHAT YOU'LL LEARN:
+# - How to connect to GroqCloud's API
+# - How to send messages and get AI responses
+#
+# BEFORE RUNNING:
+# 1. Get your free API key from: https://console.groq.com
+# 2. Set it in your terminal:
+#    export GROQ_API_KEY=your_key_here
+#
+# RUN THIS FILE:
+#   python step2_gradio_with_groq.py
+# ============================================
+
 import gradio as gr
 import os
 from groq import Groq
 
-# Initialize Groq client
-client = Groq(
-    api_key=os.environ.get("GROQ_API_KEY"),
-)
+# Connect to Groq using your API key
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-def llm_call(message, history):
-    """
-    Call Groq LLM and return response
-
-    Args:
-        message: Current user message
-        history: List of previous messages in format [{"role": "user/assistant", "content": "..."}]
-    """
-    # Build messages array from history
+def respond(message, history):
+    # Build the conversation history for the AI
     messages = []
 
-    # Add conversation history
-    if history:
-        for msg in history:
-            messages.append(msg)
+    # Add all previous messages
+    for msg in history:
+        messages.append(msg)
 
-    # Add current message
-    messages.append({
-        "role": "user",
-        "content": message
-    })
+    # Add the new message from user
+    messages.append({"role": "user", "content": message})
 
-    # Call Groq API
-    chat_completion = client.chat.completions.create(
+    # Send to AI and get response
+    response = client.chat.completions.create(
         messages=messages,
         model="openai/gpt-oss-20b",
     )
 
-    # Extract and return response
-    return chat_completion.choices[0].message.content
+    # Return the AI's reply
+    return response.choices[0].message.content
 
-# Create chat interface
-demo = gr.ChatInterface(
-    fn=llm_call,
-    title="Groq AI Chat",
-    description="Chat interface powered by Groq LLM (openai/gpt-oss-20b)"
-)
+# Create and launch the chat interface
+demo = gr.ChatInterface(fn=respond)
+demo.launch()
 
-if __name__ == "__main__":
-    demo.launch()
+# ============================================
+# TRY THIS:
+# 1. Ask "What is Python?"
+# 2. Then ask "Why is it popular?"
+#    (The AI remembers the context!)
+#
+# HOW IT WORKS:
+# User types message → We send it to Groq AI → AI responds
+# ============================================
