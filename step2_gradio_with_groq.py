@@ -17,10 +17,20 @@
 
 import gradio as gr
 import os
+from dotenv import load_dotenv
 from groq import Groq
+from supabase import create_client, Client
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Connect to Groq using your API key
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+# Connect to Supabase
+url: str = os.environ.get("SUPABASE_URL")
+key: str = os.environ.get("SUPABASE_KEY")
+supabase: Client = create_client(url, key)
 
 def respond(message, history):
     # Build the conversation history for the AI
@@ -39,19 +49,18 @@ def respond(message, history):
         model="openai/gpt-oss-20b",
     )
 
+    # Get the AI's reply
+    reply = response.choices[0].message.content
+    
+    # Save to database
+    supabase.table("chat_messages").insert({
+        "message": message,
+        "reply": reply
+    }).execute()
+    
     # Return the AI's reply
-    return response.choices[0].message.content
+    return reply
 
 # Create and launch the chat interface
 demo = gr.ChatInterface(fn=respond)
 demo.launch()
-
-# ============================================
-# TRY THIS:
-# 1. Ask "What is Python?"
-# 2. Then ask "Why is it popular?"
-#    (The AI remembers the context!)
-#
-# HOW IT WORKS:
-# User types message → We send it to Groq AI → AI responds
-# ============================================

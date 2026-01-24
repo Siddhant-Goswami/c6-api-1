@@ -19,13 +19,23 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import os
+from dotenv import load_dotenv
 from groq import Groq
+from supabase import create_client, Client
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Create the API
 app = FastAPI()
 
 # Connect to Groq
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+# Connect to Supabase
+url: str = os.environ.get("SUPABASE_URL")
+key: str = os.environ.get("SUPABASE_KEY")
+supabase: Client = create_client(url, key)
 
 # Define what data we expect to receive
 class ChatRequest(BaseModel):
@@ -44,8 +54,17 @@ def chat(request: ChatRequest):
         model="openai/gpt-oss-20b",
     )
 
+    # Get AI's reply
+    reply = response.choices[0].message.content
+    
+    # Save to database
+    supabase.table("chat_messages").insert({
+        "message": request.message,
+        "reply": reply
+    }).execute()
+    
     # Return AI's reply
-    return ChatResponse(reply=response.choices[0].message.content)
+    return ChatResponse(reply=reply)
 
 # Run the server
 if __name__ == "__main__":

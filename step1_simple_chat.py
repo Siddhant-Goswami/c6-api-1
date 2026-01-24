@@ -13,11 +13,26 @@
 # ============================================
 
 import gradio as gr
+import os
+from dotenv import load_dotenv
+from supabase import create_client, Client
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Connect to Supabase
+url: str = os.environ.get("SUPABASE_URL")
+key: str = os.environ.get("SUPABASE_KEY")
+supabase: Client = create_client(url, key)
 
 # This function gets called every time you send a message
-# - message: what the user just typed
-# - history: all previous messages (we'll use this later)
 def respond(message, history):
+    # Save to database
+    supabase.table("chat_messages").insert({
+        "message": message,
+        "reply": f"You said: {message}"
+    }).execute()
+    
     return f"You said: {message}"
 
 # Create the chat interface
@@ -25,14 +40,3 @@ demo = gr.ChatInterface(fn=respond)
 
 # Start the app
 demo.launch()
-
-# ============================================
-# TRY THIS:
-# 1. Run the file
-# 2. Type "Hello" and press Enter
-# 3. You should see "You said: Hello"
-#
-# CHALLENGE:
-# Change the respond() function to say something different!
-# Example: return f"Echo: {message}"
-# ============================================
